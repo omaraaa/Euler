@@ -1,3 +1,3 @@
 http://projecteuler.net/
 
-Please solve these problems yourself! 
+Please solve these problems yourself!
