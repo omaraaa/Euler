@@ -1,24 +1,35 @@
+import Data.List
+import Data.Ord
 
-primeFacsExp :: Integer -> [(Integer, Int)]
+isEven n 
+  | n `mod` 2 == 0 = True
+  | otherwise = False
 
-powerMod :: (Integral a, Integral b) => a -> a -> b -> a
-powerMod m _ 0 =  1
-powerMod m x n | n > 0 = f x' (n-1) x' where
-  x' = x `rem` m
-  f _ 0 y = y
-  f a d y = g a d where
-    g b i | even i    = g (b*b `rem` m) (i `quot` 2)
-          | otherwise = f b (i-1) (b*y `rem` m)
-powerMod m _ _  = error "powerMod: negative exponent"
+divs n = [x | x <- [2..(n-1)], n `rem` x == 0]
 
-multOrder a m 
-  | gcd a m /= 1  = error "Arguments not coprime"
-  | otherwise     = foldl1' lcm $ map (multOrder' a) $ primeFacsExp m
- 
-multOrder' a (p,k) = r where
-  pk = p^k
-  t = (p-1)*p^(k-1) -- totient \Phi(p^k)
-  r = product $ map find_qd $ primeFacsExp $ t
-  find_qd (q,e) = q^d where
-    x = powerMod pk a (t `div` (q^e))
-    d = length $ takeWhile (/= 1) $ iterate (\y -> powerMod pk y q) x
+isqrt :: Int -> Int
+isqrt = ceiling . sqrt . fromIntegral
+isPrime k = null [ x | x <- [2..isqrt k], k `mod`x  == 0]
+
+multOrder m  = f 10 m 1
+  where 
+    f a m n 
+      | n >= m = 0
+      | mod (a^n) m == 1 = n
+      | otherwise = f a m (n+1)
+
+getRNum n
+  | length (divs n) <= 1 = (n, multOrder n)
+  | length (divs n) > 1 = f1 (n)  (divs n)
+  | otherwise = (n, -1)
+    where 
+      f1 n d
+        | multOrder (head d) == 0 && multOrder (last d) == 0 = (n, 0)
+        | multOrder (head d) == 0 = (n, multOrder (last d))
+        | multOrder (last d) == 0 = (n, multOrder (head d))
+        | otherwise = (n,lcm (multOrder (head d)) (multOrder (last d)))
+
+solution = sortBy (comparing $  snd) $ map getRNum [x | x <- [2..1000]]
+
+main = do
+  print $ fst $ last $ solution
